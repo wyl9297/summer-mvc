@@ -230,7 +230,7 @@ public class SummerDispatcherServlet extends HttpServlet {
         }
         String viewName = summerModelAndView.getViewName();
         if( viewName.startsWith(redirectPrefix) ){
-            String url =  instanceMap.get(viewprefix)+ "/" + viewName.split(":")[1] + instanceMap.get(viewSuffix);
+            String url = viewName.split(":")[1] ;
             try {
                 response.sendRedirect( url );
             } catch (IOException e) {

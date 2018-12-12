@@ -114,4 +114,11 @@ public class DemoController {
        return summerModelAndView;
     }
 
+    @SummerRequestMapping("getConfigStudentRedirect")
+    public SummerModelAndView getConfigStudentRedirect(HttpServletRequest request , HttpServletResponse response,@SummerRequestParam("name")String name ) throws ServletException, IOException {
+        System.out.println(student.getName() + " + " + student.getAge() + "+" +  student.getAddress());
+        SummerModelAndView summerModelAndView = new SummerModelAndView("redirect:getConfigStudent.html");
+        return summerModelAndView;
+    }
+
 }
