@@ -2,6 +2,8 @@ package com.summer.servlet;
 
 
 import com.summer.annotation.*;
+import com.summer.utils.SummerBeanFactory;
+import com.summer.utils.SummerModelAndView;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,7 +31,6 @@ public class SummerDispatcherServlet extends HttpServlet {
 
     List<String> packageNames = new LinkedList<>();
 
-    private final Map<String, Object> instanceMap = new ConcurrentHashMap();
     private final Map<String, Object> handerMap = new ConcurrentHashMap();
 
     @Override
@@ -88,12 +89,12 @@ public class SummerDispatcherServlet extends HttpServlet {
                 Object instance = clazz.newInstance();
                 SummerRequestMapping requestMapping = clazz.getAnnotation(SummerRequestMapping.class);
                 String key = requestMapping.value();
-                instanceMap.put(key,instance);
+                SummerBeanFactory.putBean(key,instance);
             } else if ( clazz.isAnnotationPresent(SummerService.class) ) {
                 Object instance = clazz.newInstance();
                 SummerService service = clazz.getAnnotation(SummerService.class);
                 String key = service.value();
-                instanceMap.put(key,instance);
+                SummerBeanFactory.putBean(key,instance);
             } else if ( clazz.isAnnotationPresent( SummerConfiguration.class ) ){
                 Object instance = clazz.newInstance();
                 Method[] methods = instance.getClass().getMethods();
@@ -102,7 +103,7 @@ public class SummerDispatcherServlet extends HttpServlet {
                     if( method.isAnnotationPresent(SummerBean.class) ){
                         String value = method.getAnnotation(SummerBean.class).value();
                         Object result = method.invoke(instance);
-                        instanceMap.put(value,result);
+                        SummerBeanFactory.putBean(value,result);
                     }
                 }
 
@@ -114,10 +115,10 @@ public class SummerDispatcherServlet extends HttpServlet {
 
     private void handerMap() {
 
-        if( instanceMap.size() <= 0 ){
+        if( SummerBeanFactory.beanSize() <= 0 ){
             return;
         }
-        for (Map.Entry<String, Object> entry : instanceMap.entrySet()){
+        for (Map.Entry<String, Object> entry : SummerBeanFactory.getBeanEntrySet()){
             if( entry.getValue().getClass().isAnnotationPresent(SummerController.class) ){
                 SummerRequestMapping requestMapping = entry.getValue().getClass().getAnnotation(SummerRequestMapping.class);
                 String ctvalue = requestMapping.value();
@@ -139,17 +140,17 @@ public class SummerDispatcherServlet extends HttpServlet {
     }
 
     private void ioc() {
-        if( instanceMap.size() <= 0 ){
+        if( SummerBeanFactory.beanSize() <= 0 ){
             return;
         }
 
-        for( Map.Entry<String, Object> entry : instanceMap.entrySet() ){
+        for( Map.Entry<String, Object> entry : SummerBeanFactory.getBeanEntrySet()){
             Field[] fields = entry.getValue().getClass().getDeclaredFields();
             for( Field field : fields ){
                 field.setAccessible(true);
                 if( field.isAnnotationPresent(SummerAutowired.class) ){
                     String value = field.getAnnotation(SummerAutowired.class).value();
-                    Object instance = instanceMap.get(value);
+                    Object instance = SummerBeanFactory.getBean(value);
                     field.setAccessible(true);
                     try {
                         field.set(entry.getValue(),instance);
@@ -191,13 +192,13 @@ public class SummerDispatcherServlet extends HttpServlet {
         String context = request.getContextPath();
         String path = url.replace(context, "");
         Method method = (Method) handerMap.get(path.split("\\.")[0]);
-        Object controller = instanceMap.get(path.split("/")[1]);
+        Object controller = SummerBeanFactory.getBean(path.split("/")[1]);
         try {
             response.setCharacterEncoding("UTF-8");
             response.setContentType("text/html;charset=utf-8");
             Object[] objects = handleParam(method, request, response);
             Object invoke = method.invoke(controller, objects);
-            if( invoke instanceof SummerModelAndView ){
+            if( invoke instanceof SummerModelAndView){
                 doViewResolve(invoke,request,response);
             }
         } catch (IllegalAccessException e) {
@@ -237,7 +238,7 @@ public class SummerDispatcherServlet extends HttpServlet {
                 e.printStackTrace();
             }
         } else {
-            String url =  instanceMap.get(viewprefix)+ "/" + viewName + instanceMap.get(viewSuffix);
+            String url =  SummerBeanFactory.getBean(viewprefix)+ "/" + viewName + SummerBeanFactory.getBean(viewSuffix);
             try {
                 request.getRequestDispatcher( url ).forward(request,response);
             } catch (ServletException e) {

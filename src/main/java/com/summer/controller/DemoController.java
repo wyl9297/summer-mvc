@@ -7,7 +7,7 @@ import com.summer.annotation.SummerRequestParam;
 import com.summer.entity.Student;
 import com.summer.service.DemoService;
 import com.summer.service.OrderService;
-import com.summer.servlet.SummerModelAndView;
+import com.summer.utils.SummerModelAndView;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -105,7 +105,6 @@ public class DemoController {
 
     @SummerRequestMapping("getConfigStudent")
     public SummerModelAndView getConfigStudent(HttpServletRequest request , HttpServletResponse response,@SummerRequestParam("name")String name ) throws ServletException, IOException {
-        System.out.println(student.getName() + " + " + student.getAge() + "+" +  student.getAddress());
         SummerModelAndView summerModelAndView = new SummerModelAndView("winter");
         summerModelAndView.addObject("name",student.getName() + "---" + name);
         summerModelAndView.addObject("age",student.getAge());
@@ -116,7 +115,6 @@ public class DemoController {
 
     @SummerRequestMapping("getConfigStudentRedirect")
     public SummerModelAndView getConfigStudentRedirect(HttpServletRequest request , HttpServletResponse response,@SummerRequestParam("name")String name ) throws ServletException, IOException {
-        System.out.println(student.getName() + " + " + student.getAge() + "+" +  student.getAddress());
         SummerModelAndView summerModelAndView = new SummerModelAndView("redirect:getConfigStudent.html");
         return summerModelAndView;
     }

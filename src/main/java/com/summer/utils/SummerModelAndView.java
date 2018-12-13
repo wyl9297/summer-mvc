@@ -1,4 +1,4 @@
-package com.summer.servlet;
+package com.summer.utils;
 
 import java.util.HashMap;
 import java.util.Map;
