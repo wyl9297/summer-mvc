@@ -4,6 +4,7 @@ package com.summer.servlet;
 import com.summer.annotation.*;
 import com.summer.utils.SummerBeanFactory;
 import com.summer.utils.SummerModelAndView;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -28,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SummerDispatcherServlet extends HttpServlet {
 
+    private static org.slf4j.Logger logger = LoggerFactory.getLogger(SummerDispatcherServlet.class);
 
     List<String> packageNames = new LinkedList<>();
 
@@ -89,11 +91,13 @@ public class SummerDispatcherServlet extends HttpServlet {
                 Object instance = clazz.newInstance();
                 SummerRequestMapping requestMapping = clazz.getAnnotation(SummerRequestMapping.class);
                 String key = requestMapping.value();
+                logger.info("Loaded Bean - [ {} ]" , key);
                 SummerBeanFactory.putBean(key,instance);
             } else if ( clazz.isAnnotationPresent(SummerService.class) ) {
                 Object instance = clazz.newInstance();
                 SummerService service = clazz.getAnnotation(SummerService.class);
                 String key = service.value();
+                logger.info("Loaded Bean - [ {} ]" , key);
                 SummerBeanFactory.putBean(key,instance);
             } else if ( clazz.isAnnotationPresent( SummerConfiguration.class ) ){
                 Object instance = clazz.newInstance();
@@ -103,6 +107,7 @@ public class SummerDispatcherServlet extends HttpServlet {
                     if( method.isAnnotationPresent(SummerBean.class) ){
                         String value = method.getAnnotation(SummerBean.class).value();
                         Object result = method.invoke(instance);
+                        logger.info("Loaded Bean - [ {} ]" , value);
                         SummerBeanFactory.putBean(value,result);
                     }
                 }
@@ -127,6 +132,7 @@ public class SummerDispatcherServlet extends HttpServlet {
                     if( method.isAnnotationPresent(SummerRequestMapping.class) ){
                         SummerRequestMapping rm = method.getAnnotation(SummerRequestMapping.class);
                         String rmvalue = rm.value();
+                        logger.info("Mapped Url path - [{}] onto handler '{}' " , "/" + ctvalue + "/" + rmvalue , entry.getValue().getClass().getSimpleName());
                         handerMap.put("/" + ctvalue + "/" + rmvalue, method);
                     } else {
                         continue;
